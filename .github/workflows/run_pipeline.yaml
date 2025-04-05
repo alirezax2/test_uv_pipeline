@@ -1,0 +1,38 @@
+name: test_githubaction_UV
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Every night at midnight UTC
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Manual trigger (hook)
+  
+  repository_dispatch:
+    types: [webhook-event]  
+
+jobs:
+  uv-job-one:
+    name: Python
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"     
+
+      - name: Install the project
+        run: uv sync --all-extras --dev
+
+      - name: Run tests
+        run: uv run python main.py
+        
